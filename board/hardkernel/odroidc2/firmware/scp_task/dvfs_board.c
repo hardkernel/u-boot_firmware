@@ -31,6 +31,8 @@ int pwm_voltage_table[31][2] = {
 	{ 0x000012a, 1130}
 };
 
+#define MAX_VCCK 1130
+
 struct scpi_opp_entry cpu_dvfs_tbl[] = {
 	DVFS( 100000000,  870),
 	DVFS( 250000000,  870),
@@ -113,6 +115,9 @@ void set_dvfs(unsigned int domain, unsigned int index)
 {
 	int cur, to;
 	static int init_flag = 0;
+	unsigned char dvfs_vcck = 0;
+
+	dvfs_vcck = (domain & 0x80);
 
 	if (!init_flag) {
 		pwm_init(pwm_b);
@@ -120,8 +125,14 @@ void set_dvfs(unsigned int domain, unsigned int index)
 	}
 	cur = dvfs_get_voltage();
 	for (to = 0; to < ARRAY_SIZE(pwm_voltage_table); to++) {
-		if (pwm_voltage_table[to][1] >= cpu_dvfs_tbl[index].volt_mv) {
-			break;
+		if (dvfs_vcck) {
+			if (pwm_voltage_table[to][1] >= cpu_dvfs_tbl[index].volt_mv) {
+				break;
+			}
+		} else {
+			if (pwm_voltage_table[to][1] >= MAX_VCCK) {
+				break;
+			}
 		}
 	}
 	if (to >= ARRAY_SIZE(pwm_voltage_table)) {
