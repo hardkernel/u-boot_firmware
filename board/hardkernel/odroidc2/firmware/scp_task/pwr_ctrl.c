@@ -12,6 +12,10 @@
 typedef unsigned int uint32_t;
 #endif
 
+#ifdef CONFIG_GPIO_WAKEUP
+#include <gpio_key.h>
+#endif
+
 extern int pwm_voltage_table[31][2];
 
 #define P_PIN_MUX_REG3		(*((volatile unsigned *)(0xda834400 + (0x2f << 2))))
@@ -234,6 +238,8 @@ unsigned int detect_key(unsigned int suspend_from)
 	int exit_reason = 0;
 	unsigned int time_out = readl(AO_DEBUG_REG2);
 	unsigned int init_time = get_time();
+	unsigned int is_gpiokey = 0;
+
 	init_remote();
 #ifdef CONFIG_CEC_WAKEUP
 	if ((hdmi_cec_func_config >> CEC_FUNC_MASK) & 0x1) {
@@ -243,6 +249,10 @@ unsigned int detect_key(unsigned int suspend_from)
 #endif
 	/* set some gpios to intended status before suspend */
 	set_custom_gpio_status();
+
+#ifdef CONFIG_GPIO_WAKEUP
+	is_gpiokey = init_gpio_key();
+#endif
 
 	do {
 #ifdef CONFIG_CEC_WAKEUP
@@ -289,6 +299,14 @@ unsigned int detect_key(unsigned int suspend_from)
 			!(readl(PREG_PAD_GPIO4_I) & (0x01 << 7))) {
 			exit_reason = WIFI_WAKEUP;
 			break;
+		}
+#endif
+#ifdef CONFIG_GPIO_WAKEUP
+		if (is_gpiokey) {
+			if (gpio_detect_key()) {
+				exit_reason = GPIO_WAKEUP;
+				break;
+			}
 		}
 #endif
 	} while (1);
