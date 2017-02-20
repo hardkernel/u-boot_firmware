@@ -191,7 +191,7 @@ int key_chattering(void)
 		else
 			key_pressed = 0;
 
-		if (count == 500)
+		if (count == 300)
 			return 1;
 	}
 
