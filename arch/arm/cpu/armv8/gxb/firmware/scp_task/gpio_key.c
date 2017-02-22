@@ -22,38 +22,123 @@ static unsigned int bank_index;
 static unsigned int offset;
 static unsigned int active;
 
-static unsigned int gpio_to_pin[][6] = {
+static struct gpio_array {
+	unsigned int pin;
+	unsigned int function[6];
+} gpio_to_pin[] = {
 	/* GPIO AO [122 ~ 135] -> [0 ~ 13] */
-	[GPIOAO_6] = {PK(AO, 18), PK(AO, 16), NE, NE, NE, NE,},
-	[GPIOAO_8] = {PK(AO, 30), NE, NE, NE, NE, NE,},
-	[GPIOAO_9] = {PK(AO, 29), NE, NE, NE, NE, NE,},
-	[GPIOAO_10] = {PK(AO, 28), NE, NE, NE, NE, NE,},
-	[GPIOAO_11] = {PK(AO, 27), PK(AO, 15), PK(AO, 14), PK(AO, 17),
+	{
+		.pin = GPIOAO_6,
+		.function = {PK(AO, 18), PK(AO, 16), NE, NE, NE, NE,},
+	},
+	{
+		.pin = GPIOAO_8,
+		.function = {PK(AO, 30), NE, NE, NE, NE, NE,},
+	},
+	{
+		.pin = GPIOAO_9,
+		.function = {PK(AO, 29), NE, NE, NE, NE, NE,},
+	},
+	{
+		.pin = GPIOAO_10,
+		.function = {PK(AO, 28), NE, NE, NE, NE, NE,},
+	},
+	{
+		.pin = GPIOAO_11,
+		.function = {PK(AO, 27), PK(AO, 15), PK(AO, 14), PK(AO, 17),
 		PK(AO2, 0), NE,},
+	},
 	/* GPIO Y [211 ~ 227] -> [89 ~ 105] */
-	[PIN_GPIOY_3] = {PK(2, 16), PK(3, 4), PK(1, 2), NE, NE, NE,},
-	[PIN_GPIOY_5] = {PK(2, 16), PK(3, 5), PK(1, 13), NE, NE, NE,}, /* SW1 */
-	[PIN_GPIOY_7] = {PK(2, 16), PK(3, 5), PK(1, 4), NE, NE, NE,},
-	[PIN_GPIOY_8] = {PK(2, 16), PK(3, 5), PK(1, 5), NE, NE, NE,},
-	[PIN_GPIOY_13] = {PK(1, 17), PK(1, 10), NE, NE, NE, NE,},
-	[PIN_GPIOY_14] = {PK(1, 16), PK(1, 11), NE, NE, NE, NE,},
+	{
+		.pin = PIN_GPIOY_3,
+		.function = {PK(2, 16), PK(3, 4), PK(1, 2), NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOY_5,
+		.function = {PK(2, 16), PK(3, 5), PK(1, 13), NE, NE, NE,}, /* SW1 */
+	},
+	{
+		.pin = PIN_GPIOY_7,
+		.function = {PK(2, 16), PK(3, 5), PK(1, 4), NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOY_8,
+		.function = {PK(2, 16), PK(3, 5), PK(1, 5), NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOY_13,
+		.function = {PK(1, 17), PK(1, 10), NE, NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOY_14,
+		.function = {PK(1, 16), PK(1, 11), NE, NE, NE, NE,},
+	},
+
 	/* GPIO X [228 ~ 250] -> [106 ~ 128] */
-	[PIN_GPIOX_0] = {PK(8, 5), NE, NE, NE, NE, NE,},
-	[PIN_GPIOX_1] = {PK(8, 4), NE, NE, NE, NE, NE,},
-	[PIN_GPIOX_2] = {PK(8, 3), NE, NE, NE, NE, NE,},
-	[PIN_GPIOX_3] = {PK(8, 2), NE, NE, NE, NE, NE,},
-	[PIN_GPIOX_4] = {PK(8, 1), NE, NE, NE, NE, NE,},
-	[PIN_GPIOX_5] = {PK(8, 0), NE, NE, NE, NE, NE,},
-	[PIN_GPIOX_6] = {PK(3, 9), PK(3, 17), NE, NE, NE, NE,},
-	[PIN_GPIOX_7] = {PK(8, 11), PK(3, 8), PK(3, 18), NE, NE, NE,},
-	[PIN_GPIOX_8] = {PK(3, 10), PK(4, 7), PK(3, 30), NE, NE, NE,},
-	[PIN_GPIOX_9] = {PK(3, 7), PK(4, 6), PK(3, 29), NE, NE, NE,},
-	[PIN_GPIOX_10] = {PK(3, 13), PK(3, 28), NE, NE, NE, NE,},
-	[PIN_GPIOX_11] = {PK(3, 12), PK(3, 27), NE, NE, NE, NE,},
-	[PIN_GPIOX_12] = {PK(4, 13), PK(4, 17), PK(3, 12), NE, NE, NE,},
-	[PIN_GPIOX_13] = {PK(4, 12), PK(4, 16), PK(3, 12), NE, NE, NE,},
-	[PIN_GPIOX_19] = {PK(2, 22), PK(3, 15), PK(2, 30), NE, NE, NE,},
-	[PIN_GPIOX_21] = {PK(3, 24), NE, NE, NE, NE, NE,},
+	{
+		.pin = PIN_GPIOX_0,
+		.function = {PK(8, 5), NE, NE, NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOX_1,
+		.function = {PK(8, 4), NE, NE, NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOX_2,
+		.function = {PK(8, 3), NE, NE, NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOX_3,
+		.function = {PK(8, 2), NE, NE, NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOX_4,
+		.function = {PK(8, 1), NE, NE, NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOX_5,
+		.function = {PK(8, 0), NE, NE, NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOX_6,
+		.function = {PK(3, 9), PK(3, 17), NE, NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOX_7,
+		.function = {PK(8, 11), PK(3, 8), PK(3, 18), NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOX_8,
+		.function = {PK(3, 10), PK(4, 7), PK(3, 30), NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOX_9,
+		.function = {PK(3, 7), PK(4, 6), PK(3, 29), NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOX_10,
+		.function = {PK(3, 13), PK(3, 28), NE, NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOX_11,
+		.function = {PK(3, 12), PK(3, 27), NE, NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOX_12,
+		.function = {PK(4, 13), PK(4, 17), PK(3, 12), NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOX_13,
+		.function = {PK(4, 12), PK(4, 16), PK(3, 12), NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOX_19,
+		.function = {PK(2, 22), PK(3, 15), PK(2, 30), NE, NE, NE,},
+	},
+	{
+		.pin = PIN_GPIOX_21,
+		.function = {PK(3, 24), NE, NE, NE, NE, NE,},
+	},
 };
 
 #define BANK(n, f, l, per, peb, pr, pb, dr, db, or, ob, ir, ib)		\
@@ -107,18 +192,27 @@ static unsigned long active_tbl[] = {
 
 int  clear_pinmux(unsigned int pin)
 {
-	int i;
+	int i, j;
 	int dom, reg, bit;
 
-	for (i = 0; i < 6; i++) {
-		if (gpio_to_pin[pin][i] != NE) {
-			reg = (GPIO_REG(gpio_to_pin[pin][i]) & 0xf);
-			bit = GPIO_BIT(gpio_to_pin[pin][i]);
-			dom = (GPIO_REG(gpio_to_pin[pin][i]) >> 4);
-			aml_update_bits((domain[dom] + (reg << 2)), BIT(bit), 0);
+	for (i = 0; i < ARRAY_SIZE(gpio_to_pin); i++) {
+		if (gpio_to_pin[i].pin == pin) {
+			for (j = 0; j < 6; j++) {
+				if (gpio_to_pin[i].function[j] != NE) {
+					reg = (GPIO_REG(gpio_to_pin[i].function[j]) & 0xf);
+					bit = GPIO_BIT(gpio_to_pin[i].function[j]);
+					dom = (GPIO_REG(gpio_to_pin[i].function[j]) >> 4);
+					aml_update_bits((domain[dom] + (reg << 2)), BIT(bit), 0);
+				}
+			}
+			break;
 		}
 	}
-	return 1;
+
+	if (i >= ARRAY_SIZE(gpio_to_pin))
+		return 0;
+	else
+		return 1;
 }
 
 /* pin mux clear */
@@ -129,6 +223,8 @@ int init_gpio_key(void)
 	struct meson_bank bank;
 
 	/* translate key index */
+	if ((gpio_wakeup_keyno < 122) || (gpio_wakeup_keyno > 250))
+		return 0;
 	key_index = gpio_wakeup_keyno - GPIO_OFFSET;
 
 	/* clear_pinmux */
