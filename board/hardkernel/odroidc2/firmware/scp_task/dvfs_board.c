@@ -49,6 +49,14 @@ struct scpi_opp_entry cpu_dvfs_tbl[] = {
 	DVFS(2016000000, 1130),
 };
 
+struct scpi_opp_entry cpu_dvfs_tbl_limited[] = {
+	DVFS( 100000000,  870),
+	DVFS( 250000000,  870),
+	DVFS( 500000000,  870),
+	DVFS(1000000000,  990),
+	DVFS(1296000000, 1100),
+	DVFS(1536000000, 1100),
+};
 
 
 #define P_PIN_MUX_REG3		(*((volatile unsigned *)(0xda834400 + (0x2f << 2))))
